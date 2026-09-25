@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Cloud File Sharing App</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h1>Cloud File Sharing</h1>
+
+            <p class="subtitle">
+                Upload and manage files using Amazon S3
+            </p>
+
+            <form id="uploadForm">
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    name="file"
+                    required
+                >
+
+                <button type="submit">
+                    Upload File
+                </button>
+
+            </form>
+
+            <div id="message"></div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="files-header">
+
+                <h2>Uploaded Files</h2>
+
+                <button
+                    id="refreshButton"
+                    class="refresh-btn">
+                    Refresh
+                </button>
+
+            </div>
+
+            <div id="fileList">
+
+                <p>Loading files...</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
