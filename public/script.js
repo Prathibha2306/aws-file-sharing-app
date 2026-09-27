@@ -1,92 +1,187 @@
 // ============================================================
-// CLOUD FILE SHARING - FRONTEND SCRIPT
+// CLOUDVAULT FRONTEND
+// ============================================================
+
+// ============================================================
+// DOM ELEMENTS
 // ============================================================
 
 const uploadArea = document.getElementById("uploadArea");
 const fileInput = document.getElementById("fileInput");
-const uploadBtn = document.getElementById("uploadBtn");
 const browseBtn = document.getElementById("browseBtn");
+const heroUploadButton = document.getElementById("heroUploadButton");
 
 const filesList = document.getElementById("filesList");
 const searchInput = document.getElementById("searchInput");
-
 const refreshBtn = document.getElementById("refreshBtn");
 
 const uploadProgress = document.getElementById("uploadProgress");
 const progressBar = document.getElementById("progressBar");
 const progressText = document.getElementById("progressText");
+const progressFileName = document.getElementById("progressFileName");
 
 const toast = document.getElementById("toast");
 
+const totalFiles = document.getElementById("totalFiles");
+const storageUsed = document.getElementById("storageUsed");
+const imageCount = document.getElementById("imageCount");
+const documentCount = document.getElementById("documentCount");
+
 let allFiles = [];
-let selectedFile = null;
+
 
 // ============================================================
-// INITIAL LOAD
+// PAGE INITIALIZATION
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    console.log("CloudVault frontend loaded.");
+
     loadFiles();
     loadStats();
-    setupNavigation();
+    setupEventListeners();
+
 });
 
-// ============================================================
-// FILE INPUT
-// ============================================================
-
-if (browseBtn) {
-    browseBtn.addEventListener("click", () => {
-        fileInput.click();
-    });
-}
-
-if (uploadBtn) {
-    uploadBtn.addEventListener("click", () => {
-        fileInput.click();
-    });
-}
-
-if (fileInput) {
-    fileInput.addEventListener("change", (event) => {
-        const file = event.target.files[0];
-
-        if (file) {
-            selectedFile = file;
-            uploadFile(file);
-        }
-    });
-}
 
 // ============================================================
-// DRAG AND DROP
+// EVENT LISTENERS
 // ============================================================
 
-if (uploadArea) {
+function setupEventListeners() {
 
-    uploadArea.addEventListener("dragover", (event) => {
-        event.preventDefault();
+    // Browse button
+    if (browseBtn && fileInput) {
 
-        uploadArea.classList.add("drag-over");
-    });
+        browseBtn.addEventListener("click", (event) => {
 
-    uploadArea.addEventListener("dragleave", () => {
-        uploadArea.classList.remove("drag-over");
-    });
+            event.preventDefault();
 
-    uploadArea.addEventListener("drop", (event) => {
-        event.preventDefault();
+            fileInput.click();
 
-        uploadArea.classList.remove("drag-over");
+        });
 
-        const file = event.dataTransfer.files[0];
+    }
 
-        if (file) {
-            selectedFile = file;
-            uploadFile(file);
-        }
-    });
+
+    // Hero upload button
+    if (heroUploadButton) {
+
+        heroUploadButton.addEventListener("click", () => {
+
+            document.getElementById("upload").scrollIntoView({
+                behavior: "smooth"
+            });
+
+            setTimeout(() => {
+
+                if (fileInput) {
+                    fileInput.click();
+                }
+
+            }, 500);
+
+        });
+
+    }
+
+
+    // File selection
+    if (fileInput) {
+
+        fileInput.addEventListener("change", (event) => {
+
+            const file = event.target.files[0];
+
+            if (file) {
+                uploadFile(file);
+            }
+
+        });
+
+    }
+
+
+    // Drag over
+    if (uploadArea) {
+
+        uploadArea.addEventListener("dragover", (event) => {
+
+            event.preventDefault();
+
+            uploadArea.classList.add("dragover");
+
+        });
+
+
+        // Drag leave
+        uploadArea.addEventListener("dragleave", () => {
+
+            uploadArea.classList.remove("dragover");
+
+        });
+
+
+        // Drop
+        uploadArea.addEventListener("drop", (event) => {
+
+            event.preventDefault();
+
+            uploadArea.classList.remove("dragover");
+
+            const file = event.dataTransfer.files[0];
+
+            if (file) {
+                uploadFile(file);
+            }
+
+        });
+
+
+        // Click anywhere in upload zone
+        uploadArea.addEventListener("click", (event) => {
+
+            if (
+                event.target !== browseBtn &&
+                fileInput
+            ) {
+
+                fileInput.click();
+
+            }
+
+        });
+
+    }
+
+
+    // Search
+    if (searchInput) {
+
+        searchInput.addEventListener("input", () => {
+
+            filterFiles(searchInput.value);
+
+        });
+
+    }
+
+
+    // Refresh
+    if (refreshBtn) {
+
+        refreshBtn.addEventListener("click", () => {
+
+            loadFiles();
+            loadStats();
+
+        });
+
+    }
+
 }
+
 
 // ============================================================
 // UPLOAD FILE
@@ -94,125 +189,214 @@ if (uploadArea) {
 
 function uploadFile(file) {
 
+    if (!file) {
+        return;
+    }
+
+
+    // Maximum 10 MB
     const maxSize = 10 * 1024 * 1024;
 
     if (file.size > maxSize) {
-        showToast("File must be smaller than 10 MB", "error");
+
+        showToast(
+            "File is too large. Maximum size is 10 MB."
+        );
+
+        if (fileInput) {
+            fileInput.value = "";
+        }
+
         return;
     }
+
+
+    console.log("Uploading:", file.name);
+
+
+    // Show progress
+    if (uploadProgress) {
+        uploadProgress.style.display = "block";
+    }
+
+    if (progressFileName) {
+        progressFileName.textContent = file.name;
+    }
+
+    if (progressBar) {
+        progressBar.style.width = "0%";
+    }
+
+    if (progressText) {
+        progressText.textContent = "0%";
+    }
+
 
     const formData = new FormData();
 
     formData.append("file", file);
 
-    showUploadProgress();
 
     const xhr = new XMLHttpRequest();
 
-    xhr.open("POST", "/api/upload", true);
+    xhr.open(
+        "POST",
+        "/api/upload",
+        true
+    );
 
-    // --------------------------------------------------------
-    // Upload progress
-    // --------------------------------------------------------
 
-    xhr.upload.addEventListener("progress", (event) => {
+    // ========================================================
+    // UPLOAD PROGRESS
+    // ========================================================
 
-        if (event.lengthComputable) {
+    xhr.upload.addEventListener(
+        "progress",
+        (event) => {
 
-            const percent = Math.round(
-                (event.loaded / event.total) * 100
-            );
+            if (event.lengthComputable) {
 
-            if (progressBar) {
-                progressBar.style.width = `${percent}%`;
+                const percentage =
+                    Math.round(
+                        (event.loaded / event.total) * 100
+                    );
+
+                if (progressBar) {
+                    progressBar.style.width =
+                        percentage + "%";
+                }
+
+                if (progressText) {
+                    progressText.textContent =
+                        percentage + "%";
+                }
+
             }
 
-            if (progressText) {
-                progressText.textContent =
-                    `Uploading ${percent}%`;
-            }
         }
-    });
+    );
 
-    // --------------------------------------------------------
-    // Upload completed
-    // --------------------------------------------------------
 
-    xhr.onload = () => {
+    // ========================================================
+    // SUCCESS / ERROR
+    // ========================================================
 
-        hideUploadProgress();
-
-        if (xhr.status >= 200 && xhr.status < 300) {
+    xhr.addEventListener(
+        "load",
+        async () => {
 
             try {
 
-                const response = JSON.parse(xhr.responseText);
+                const result =
+                    JSON.parse(xhr.responseText);
 
-                if (response.success) {
+
+                if (
+                    xhr.status >= 200 &&
+                    xhr.status < 300 &&
+                    result.success
+                ) {
 
                     showToast(
-                        `${file.name} uploaded successfully`,
-                        "success"
+                        "File uploaded successfully!"
                     );
 
-                    fileInput.value = "";
 
-                    loadFiles();
-                    loadStats();
+                    if (progressBar) {
+                        progressBar.style.width = "100%";
+                    }
+
+                    if (progressText) {
+                        progressText.textContent = "100%";
+                    }
+
+
+                    // Clear input
+                    if (fileInput) {
+                        fileInput.value = "";
+                    }
+
+
+                    // Refresh files
+                    await loadFiles();
+                    await loadStats();
+
+
+                    setTimeout(() => {
+
+                        if (uploadProgress) {
+                            uploadProgress.style.display =
+                                "none";
+                        }
+
+                    }, 1200);
 
                 } else {
 
                     showToast(
-                        response.error || "Upload failed",
-                        "error"
+                        result.message ||
+                        "Upload failed."
                     );
+
+                    hideProgress();
+
                 }
 
             } catch (error) {
 
-                showToast(
-                    "Invalid server response",
-                    "error"
+                console.error(
+                    "Upload response error:",
+                    error
                 );
+
+                showToast(
+                    "Unexpected server response."
+                );
+
+                hideProgress();
+
             }
 
-        } else {
-
-            try {
-
-                const response = JSON.parse(xhr.responseText);
-
-                showToast(
-                    response.error || "Upload failed",
-                    "error"
-                );
-
-            } catch {
-
-                showToast(
-                    "Upload failed",
-                    "error"
-                );
-            }
         }
-    };
+    );
 
-    // --------------------------------------------------------
-    // Upload error
-    // --------------------------------------------------------
 
-    xhr.onerror = () => {
+    xhr.addEventListener(
+        "error",
+        () => {
 
-        hideUploadProgress();
+            console.error(
+                "Network error during upload."
+            );
 
-        showToast(
-            "Network error. Please try again.",
-            "error"
-        );
-    };
+            showToast(
+                "Unable to connect to the server."
+            );
+
+            hideProgress();
+
+        }
+    );
+
+
+    xhr.addEventListener(
+        "timeout",
+        () => {
+
+            showToast(
+                "Upload timed out."
+            );
+
+            hideProgress();
+
+        }
+    );
+
 
     xhr.send(formData);
+
 }
+
 
 // ============================================================
 // LOAD FILES
@@ -220,89 +404,79 @@ function uploadFile(file) {
 
 async function loadFiles() {
 
-    showLoading();
+    if (!filesList) {
+        return;
+    }
+
+
+    filesList.innerHTML = `
+        <div class="empty-state">
+            Loading your files...
+        </div>
+    `;
+
 
     try {
 
-        const response = await fetch("/api/files");
+        const response =
+            await fetch("/api/files");
+
 
         if (!response.ok) {
-            throw new Error("Failed to load files");
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-
-            allFiles = data.files || [];
-
-            renderFiles(allFiles);
-
-        } else {
 
             throw new Error(
-                data.error || "Failed to load files"
+                `HTTP ${response.status}`
             );
+
         }
 
-    } catch (error) {
 
-        console.error(error);
+        const result =
+            await response.json();
 
-        showError(
-            "Unable to load files. Please refresh the page."
-        );
-    }
-}
 
-// ============================================================
-// LOAD STATISTICS
-// ============================================================
+        if (!result.success) {
 
-async function loadStats() {
+            throw new Error(
+                result.message ||
+                "Unable to load files"
+            );
 
-    try {
-
-        const response = await fetch("/api/stats");
-
-        if (!response.ok) {
-            throw new Error("Failed to load statistics");
         }
 
-        const data = await response.json();
 
-        if (!data.success) {
-            return;
-        }
+        allFiles = result.files || [];
 
-        updateElement(
-            "totalFiles",
-            data.totalFiles || 0
-        );
 
-        updateElement(
-            "storageUsed",
-            formatBytes(data.totalSize || 0)
-        );
+        renderFiles(allFiles);
 
-        updateElement(
-            "imageCount",
-            data.images || 0
-        );
-
-        updateElement(
-            "documentCount",
-            data.documents || 0
-        );
 
     } catch (error) {
 
         console.error(
-            "Statistics error:",
+            "Load files error:",
             error
         );
+
+
+        filesList.innerHTML = `
+            <div class="empty-state">
+                <p>Unable to load files.</p>
+                <br>
+                <button
+                    type="button"
+                    class="refresh-button"
+                    onclick="loadFiles()"
+                >
+                    Try Again
+                </button>
+            </div>
+        `;
+
     }
+
 }
+
 
 // ============================================================
 // RENDER FILES
@@ -314,104 +488,197 @@ function renderFiles(files) {
         return;
     }
 
+
     if (!files || files.length === 0) {
 
         filesList.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">☁️</div>
-                <h3>No files yet</h3>
-                <p>Upload your first file to get started.</p>
+                <p>📁 No files found.</p>
+                <p style="margin-top:8px;">
+                    Upload a file to see it here.
+                </p>
             </div>
         `;
 
         return;
     }
 
+
     filesList.innerHTML = "";
 
-    files.forEach((file) => {
 
-        const fileName = getFileName(file.key);
+    files.forEach(file => {
 
-        const fileType = getFileType(fileName);
-
-        const fileIcon = getFileIcon(fileName);
-
-        const item = document.createElement("div");
+        const item =
+            document.createElement("div");
 
         item.className = "file-item";
 
+
+        const safeName =
+            escapeHtml(file.name);
+
+
+        const size =
+            formatBytes(file.size);
+
+
+        const date =
+            formatDate(file.lastModified);
+
+
+        const icon =
+            getFileIcon(file.name);
+
+
         item.innerHTML = `
-            <div class="file-icon ${fileType}">
-                ${fileIcon}
-            </div>
 
             <div class="file-info">
 
-                <div class="file-name" title="${escapeHtml(fileName)}">
-                    ${escapeHtml(fileName)}
+                <div class="file-icon">
+                    ${icon}
                 </div>
 
-                <div class="file-meta">
-                    ${formatBytes(file.size)}
-                    <span>•</span>
-                    ${formatDate(file.lastModified)}
+                <div>
+
+                    <div class="file-name">
+                        ${safeName}
+                    </div>
+
+                    <div class="file-meta">
+                        ${size} • ${date}
+                    </div>
+
                 </div>
 
             </div>
+
 
             <div class="file-actions">
 
                 <button
-                    class="action-btn download-btn"
-                    title="Download"
-                    data-key="${encodeURIComponent(file.key)}">
-                    ↓
+                    type="button"
+                    class="action-button download-button"
+                    data-action="download"
+                >
+                    Download
                 </button>
 
                 <button
-                    class="action-btn delete-btn"
-                    title="Delete"
-                    data-key="${encodeURIComponent(file.key)}">
-                    ×
+                    type="button"
+                    class="action-button delete-button"
+                    data-action="delete"
+                >
+                    Delete
                 </button>
 
             </div>
+
         `;
 
+
+        // Download
+        item
+            .querySelector(
+                '[data-action="download"]'
+            )
+            .addEventListener(
+                "click",
+                () => downloadFile(file.key)
+            );
+
+
+        // Delete
+        item
+            .querySelector(
+                '[data-action="delete"]'
+            )
+            .addEventListener(
+                "click",
+                () => deleteFile(file.key, file.name)
+            );
+
+
         filesList.appendChild(item);
+
     });
 
-    // Download buttons
-    document
-        .querySelectorAll(".download-btn")
-        .forEach((button) => {
-
-            button.addEventListener("click", () => {
-
-                const key = decodeURIComponent(
-                    button.dataset.key
-                );
-
-                downloadFile(key);
-            });
-        });
-
-    // Delete buttons
-    document
-        .querySelectorAll(".delete-btn")
-        .forEach((button) => {
-
-            button.addEventListener("click", () => {
-
-                const key = decodeURIComponent(
-                    button.dataset.key
-                );
-
-                deleteFile(key);
-            });
-        });
 }
+
+
+// ============================================================
+// LOAD STATISTICS
+// ============================================================
+
+async function loadStats() {
+
+    try {
+
+        const response =
+            await fetch("/api/stats");
+
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+
+        const result =
+            await response.json();
+
+
+        if (!result.success) {
+            return;
+        }
+
+
+        if (totalFiles) {
+
+            totalFiles.textContent =
+                result.totalFiles || 0;
+
+        }
+
+
+        if (storageUsed) {
+
+            storageUsed.textContent =
+                formatBytes(
+                    result.totalSize || 0
+                );
+
+        }
+
+
+        if (imageCount) {
+
+            imageCount.textContent =
+                result.images || 0;
+
+        }
+
+
+        if (documentCount) {
+
+            documentCount.textContent =
+                result.documents || 0;
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Stats error:",
+            error
+        );
+
+    }
+
+}
+
 
 // ============================================================
 // DOWNLOAD FILE
@@ -422,438 +689,228 @@ async function downloadFile(key) {
     try {
 
         showToast(
-            "Preparing your download...",
-            "info"
+            "Preparing download..."
         );
 
-        const response = await fetch(
-            `/api/download?key=${encodeURIComponent(key)}`
-        );
+
+        const response =
+            await fetch(
+                `/api/download?key=${encodeURIComponent(key)}`
+            );
+
 
         if (!response.ok) {
+
             throw new Error(
-                "Failed to generate download link"
+                `HTTP ${response.status}`
             );
+
         }
 
-        const data = await response.json();
 
-        if (!data.success || !data.url) {
+        const result =
+            await response.json();
+
+
+        if (!result.success || !result.url) {
+
             throw new Error(
-                data.error || "Download failed"
+                result.message ||
+                "Download link unavailable"
             );
+
         }
 
-        // Open temporary S3 signed URL
+
+        // Open temporary pre-signed S3 URL
         window.open(
-            data.url,
+            result.url,
             "_blank"
         );
 
+
         showToast(
-            "Download started",
-            "success"
+            "Download link generated."
         );
+
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Download error:",
+            error
+        );
+
 
         showToast(
-            "Unable to download the file",
-            "error"
+            "Unable to download file."
         );
+
     }
+
 }
+
 
 // ============================================================
 // DELETE FILE
 // ============================================================
 
-async function deleteFile(key) {
+async function deleteFile(key, name) {
 
-    const fileName = getFileName(key);
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete "${name}"?`
+        );
 
-    const confirmed = confirm(
-        `Are you sure you want to delete "${fileName}"?`
-    );
 
     if (!confirmed) {
         return;
     }
 
+
     try {
 
-        const response = await fetch(
-            `/api/files?key=${encodeURIComponent(key)}`,
-            {
-                method: "DELETE"
-            }
-        );
+        const response =
+            await fetch(
+                `/api/files?key=${encodeURIComponent(key)}`,
+                {
+                    method: "DELETE"
+                }
+            );
 
-        const data = await response.json();
 
-        if (!response.ok || !data.success) {
+        const result =
+            await response.json();
+
+
+        if (!response.ok || !result.success) {
 
             throw new Error(
-                data.error || "Delete failed"
+                result.message ||
+                "Delete failed"
             );
+
         }
 
+
         showToast(
-            `${fileName} deleted successfully`,
-            "success"
+            "File deleted successfully."
         );
 
-        loadFiles();
-        loadStats();
+
+        await loadFiles();
+        await loadStats();
+
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Delete error:",
+            error
+        );
+
 
         showToast(
-            "Unable to delete the file",
-            "error"
+            "Unable to delete file."
         );
+
     }
+
 }
+
 
 // ============================================================
 // SEARCH
 // ============================================================
 
-if (searchInput) {
+function filterFiles(searchTerm) {
 
-    searchInput.addEventListener(
-        "input",
-        (event) => {
+    const term =
+        searchTerm
+            .trim()
+            .toLowerCase();
 
-            const query =
-                event.target.value
-                    .trim()
-                    .toLowerCase();
 
-            if (!query) {
+    if (!term) {
 
-                renderFiles(allFiles);
+        renderFiles(allFiles);
 
-                return;
-            }
+        return;
 
-            const filteredFiles =
-                allFiles.filter((file) => {
+    }
 
-                    const fileName =
-                        getFileName(file.key)
-                            .toLowerCase();
 
-                    return fileName.includes(query);
-                });
-
-            renderFiles(filteredFiles);
-        }
-    );
-}
-
-// ============================================================
-// REFRESH
-// ============================================================
-
-if (refreshBtn) {
-
-    refreshBtn.addEventListener(
-        "click",
-        async () => {
-
-            refreshBtn.classList.add("rotating");
-
-            await Promise.all([
-                loadFiles(),
-                loadStats()
-            ]);
-
-            setTimeout(() => {
-                refreshBtn.classList.remove(
-                    "rotating"
-                );
-            }, 500);
-        }
-    );
-}
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-
-function setupNavigation() {
-
-    const navItems =
-        document.querySelectorAll(
-            ".nav-item"
+    const filtered =
+        allFiles.filter(file =>
+            file.name
+                .toLowerCase()
+                .includes(term)
         );
 
-    navItems.forEach((item) => {
 
-        item.addEventListener(
-            "click",
-            (event) => {
+    renderFiles(filtered);
 
-                const target =
-                    item.dataset.target;
-
-                if (!target) {
-                    return;
-                }
-
-                navItems.forEach((nav) => {
-                    nav.classList.remove(
-                        "active"
-                    );
-                });
-
-                item.classList.add("active");
-
-                const section =
-                    document.getElementById(
-                        target
-                    );
-
-                if (section) {
-
-                    section.scrollIntoView({
-                        behavior: "smooth"
-                    });
-                }
-            }
-        );
-    });
 }
 
-// ============================================================
-// UPLOAD PROGRESS
-// ============================================================
-
-function showUploadProgress() {
-
-    if (uploadProgress) {
-
-        uploadProgress.style.display =
-            "block";
-    }
-
-    if (progressBar) {
-
-        progressBar.style.width =
-            "0%";
-    }
-
-    if (progressText) {
-
-        progressText.textContent =
-            "Uploading 0%";
-    }
-}
-
-function hideUploadProgress() {
-
-    setTimeout(() => {
-
-        if (uploadProgress) {
-
-            uploadProgress.style.display =
-                "none";
-        }
-
-    }, 700);
-}
 
 // ============================================================
-// LOADING STATE
+// FILE ICON
 // ============================================================
 
-function showLoading() {
-
-    if (!filesList) {
-        return;
-    }
-
-    filesList.innerHTML = `
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Loading your files...</p>
-        </div>
-    `;
-}
-
-// ============================================================
-// ERROR STATE
-// ============================================================
-
-function showError(message) {
-
-    if (!filesList) {
-        return;
-    }
-
-    filesList.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-icon">⚠️</div>
-            <h3>Something went wrong</h3>
-            <p>${escapeHtml(message)}</p>
-        </div>
-    `;
-}
-
-// ============================================================
-// TOAST NOTIFICATION
-// ============================================================
-
-function showToast(
-    message,
-    type = "info"
-) {
-
-    if (!toast) {
-        return;
-    }
-
-    toast.textContent = message;
-
-    toast.className = `toast ${type}`;
-
-    toast.classList.add("show");
-
-    setTimeout(() => {
-
-        toast.classList.remove(
-            "show"
-        );
-
-    }, 3000);
-}
-
-// ============================================================
-// FILE HELPERS
-// ============================================================
-
-function getFileName(key) {
-
-    if (!key) {
-        return "Unknown file";
-    }
-
-    const parts = key.split("/");
-
-    const fullName =
-        parts[parts.length - 1];
-
-    // Remove UUID prefix if generated by our server
-    // uploads/uuid-filename.pdf
-    const uuidPattern =
-        /^[a-f0-9-]{36}-(.+)$/i;
-
-    const match =
-        fullName.match(uuidPattern);
-
-    if (match) {
-        return match[1];
-    }
-
-    return fullName;
-}
-
-function getFileType(fileName) {
+function getFileIcon(filename) {
 
     const extension =
-        getExtension(fileName);
+        filename
+            .split(".")
+            .pop()
+            .toLowerCase();
 
-    const images = [
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "webp",
-        "svg"
-    ];
-
-    const documents = [
-        "pdf",
-        "doc",
-        "docx",
-        "txt"
-    ];
-
-    const spreadsheets = [
-        "xls",
-        "xlsx",
-        "csv"
-    ];
-
-    const presentations = [
-        "ppt",
-        "pptx"
-    ];
-
-    const archives = [
-        "zip",
-        "rar",
-        "7z"
-    ];
-
-    if (images.includes(extension)) {
-        return "image";
-    }
-
-    if (documents.includes(extension)) {
-        return "document";
-    }
-
-    if (spreadsheets.includes(extension)) {
-        return "spreadsheet";
-    }
-
-    if (presentations.includes(extension)) {
-        return "presentation";
-    }
-
-    if (archives.includes(extension)) {
-        return "archive";
-    }
-
-    return "file";
-}
-
-function getFileIcon(fileName) {
-
-    const type =
-        getFileType(fileName);
 
     const icons = {
-        image: "🖼️",
-        document: "📄",
-        spreadsheet: "📊",
-        presentation: "📑",
-        archive: "📦",
-        file: "📁"
+
+        pdf: "📕",
+
+        doc: "📘",
+        docx: "📘",
+
+        xls: "📗",
+        xlsx: "📗",
+
+        ppt: "📙",
+        pptx: "📙",
+
+        txt: "📄",
+
+        csv: "📊",
+
+        jpg: "🖼️",
+        jpeg: "🖼️",
+        png: "🖼️",
+        gif: "🖼️",
+        webp: "🖼️",
+
+        zip: "🗜️",
+        rar: "🗜️",
+
+        mp3: "🎵",
+        wav: "🎵",
+
+        mp4: "🎬",
+        avi: "🎬",
+
+        js: "📜",
+        html: "🌐",
+        css: "🎨",
+
+        json: "📋"
+
     };
 
-    return icons[type] || "📁";
+
+    return icons[extension] || "📄";
+
 }
 
-function getExtension(fileName) {
-
-    const parts =
-        fileName.split(".");
-
-    if (parts.length < 2) {
-        return "";
-    }
-
-    return parts
-        .pop()
-        .toLowerCase();
-}
 
 // ============================================================
 // FORMAT BYTES
@@ -865,6 +922,7 @@ function formatBytes(bytes) {
         return "0 B";
     }
 
+
     const units = [
         "B",
         "KB",
@@ -873,20 +931,29 @@ function formatBytes(bytes) {
         "TB"
     ];
 
+
     const index =
         Math.floor(
             Math.log(bytes) /
             Math.log(1024)
         );
 
+
     const value =
         bytes /
         Math.pow(1024, index);
 
-    return `${value.toFixed(
-        index === 0 ? 0 : 1
-    )} ${units[index]}`;
+
+    return (
+        value.toFixed(
+            index === 0 ? 0 : 2
+        ) +
+        " " +
+        units[index]
+    );
+
 }
+
 
 // ============================================================
 // FORMAT DATE
@@ -898,50 +965,35 @@ function formatDate(date) {
         return "Unknown date";
     }
 
-    const parsedDate =
-        new Date(date);
 
-    if (isNaN(parsedDate)) {
+    try {
+
+        return new Date(date)
+            .toLocaleString(
+                undefined,
+                {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+    } catch (error) {
+
         return "Unknown date";
+
     }
 
-    return parsedDate.toLocaleDateString(
-        "en-IN",
-        {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }
-    );
 }
 
-// ============================================================
-// UPDATE ELEMENT
-// ============================================================
-
-function updateElement(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-}
 
 // ============================================================
-// HTML ESCAPE
+// ESCAPE HTML
 // ============================================================
 
 function escapeHtml(value) {
-
-    if (value === null ||
-        value === undefined) {
-        return "";
-    }
 
     return String(value)
         .replace(/&/g, "&amp;")
@@ -949,4 +1001,56 @@ function escapeHtml(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+
+}
+
+
+// ============================================================
+// TOAST
+// ============================================================
+
+function showToast(message) {
+
+    if (!toast) {
+        return;
+    }
+
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+
+    clearTimeout(
+        window.cloudVaultToastTimer
+    );
+
+
+    window.cloudVaultToastTimer =
+        setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 3000);
+
+}
+
+
+// ============================================================
+// HIDE PROGRESS
+// ============================================================
+
+function hideProgress() {
+
+    if (uploadProgress) {
+
+        setTimeout(() => {
+
+            uploadProgress.style.display =
+                "none";
+
+        }, 500);
+
+    }
+
 }

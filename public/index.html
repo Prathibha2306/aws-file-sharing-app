@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -13,602 +15,727 @@
         content="Secure cloud file upload and sharing application powered by Amazon S3 and AWS EC2."
     >
 
-    <title>CloudVault — File Sharing</title>
+    <title>CloudVault - Cloud File Sharing</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        /* =====================================================
+           NAVBAR
+           ===================================================== */
+
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 7%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: #2563eb;
+        }
+
+        /* =====================================================
+           HERO
+           ===================================================== */
+
+        .hero {
+            padding: 70px 20px 50px;
+            text-align: center;
+            background: linear-gradient(
+                135deg,
+                #eff6ff,
+                #ffffff
+            );
+        }
+
+        .hero h1 {
+            font-size: 44px;
+            margin-bottom: 18px;
+            color: #111827;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: auto;
+            color: #6b7280;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .hero button {
+            margin-top: 28px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .hero button:hover {
+            background: #1d4ed8;
+        }
+
+        /* =====================================================
+           MAIN
+           ===================================================== */
+
+        .container {
+            width: 86%;
+            max-width: 1200px;
+            margin: 45px auto;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+
+        /* =====================================================
+           UPLOAD
+           ===================================================== */
+
+        .upload-zone {
+            background: white;
+            border: 2px dashed #93c5fd;
+            border-radius: 14px;
+            padding: 50px 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .upload-icon {
+            font-size: 52px;
+            margin-bottom: 15px;
+        }
+
+        .upload-zone h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .upload-zone p {
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .browse-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .browse-button:hover {
+            background: #1d4ed8;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-limit {
+            display: block;
+            margin-top: 15px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           PROGRESS
+           ===================================================== */
+
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #2563eb;
+            transition: width 0.2s;
+        }
+
+        /* =====================================================
+           STATISTICS
+           ===================================================== */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin: 35px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-card h4 {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card strong {
+            font-size: 28px;
+            color: #111827;
+        }
+
+        /* =====================================================
+           FILE SECTION
+           ===================================================== */
+
+        .files-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 350px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        .refresh-button {
+            padding: 12px 20px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .refresh-button:hover {
+            background: #f3f4f6;
+        }
+
+        .files-list {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 15px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 0;
+        }
+
+        .file-icon {
+            font-size: 30px;
+        }
+
+        .file-name {
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-meta {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-button {
+            border: none;
+            padding: 9px 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .download-button {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .delete-button {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6b7280;
+        }
+
+        /* =====================================================
+           TOAST
+           ===================================================== */
+
+        .toast {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            background: #111827;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            display: none;
+            z-index: 999;
+            max-width: 350px;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+
+        footer {
+            text-align: center;
+            padding: 35px;
+            margin-top: 60px;
+            background: #111827;
+            color: #d1d5db;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hero h1 {
+                font-size: 34px;
+            }
+
+            .files-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                max-width: none;
+            }
+
+            .file-item {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .file-actions {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .navbar {
+                padding: 0 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .container {
+                width: 92%;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <!-- ==================================================
-         BACKGROUND
-    =================================================== -->
+    <!-- =====================================================
+         NAVIGATION
+         ===================================================== -->
 
-    <div class="background">
-        <div class="gradient-orb orb-one"></div>
-        <div class="gradient-orb orb-two"></div>
-        <div class="gradient-orb orb-three"></div>
-    </div>
+    <nav class="navbar">
 
-
-    <!-- ==================================================
-         APP
-    =================================================== -->
-
-    <div class="app-container">
-
-        <!-- ==================================================
-             SIDEBAR
-        =================================================== -->
-
-        <aside class="sidebar">
-
-            <div class="brand">
-
-                <div class="brand-icon">
-                    ☁
-                </div>
-
-                <div>
-                    <h1>CloudVault</h1>
-                    <span>Secure file storage</span>
-                </div>
-
-            </div>
-
-
-            <nav class="navigation">
-
-                <a
-                    href="#"
-                    class="nav-item active"
-                >
-                    <span class="nav-icon">⌂</span>
-                    <span>Dashboard</span>
-                </a>
-
-                <a
-                    href="#files"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">▣</span>
-                    <span>My Files</span>
-                </a>
-
-                <a
-                    href="#upload"
-                    class="nav-item"
-                >
-                    <span class="nav-icon">↥</span>
-                    <span>Upload</span>
-                </a>
-
-            </nav>
-
-
-            <div class="sidebar-bottom">
-
-                <div class="security-card">
-
-                    <div class="security-icon">
-                        ✓
-                    </div>
-
-                    <div>
-                        <strong>Secure Storage</strong>
-                        <p>Protected by Amazon S3</p>
-                    </div>
-
-                </div>
-
-                <div class="server-status">
-
-                    <span class="status-dot"></span>
-
-                    <span>
-                        Cloud server online
-                    </span>
-
-                </div>
-
-            </div>
-
-        </aside>
-
-
-        <!-- ==================================================
-             MAIN CONTENT
-        =================================================== -->
-
-        <main class="main-content">
-
-            <!-- TOP BAR -->
-
-            <header class="topbar">
-
-                <div class="mobile-brand">
-                    <div class="brand-icon">☁</div>
-                    <strong>CloudVault</strong>
-                </div>
-
-                <div class="topbar-actions">
-
-                    <button
-                        class="icon-button"
-                        id="refreshButton"
-                        title="Refresh files"
-                    >
-                        ↻
-                    </button>
-
-                    <div class="user-profile">
-
-                        <div class="avatar">
-                            P
-                        </div>
-
-                        <div class="user-info">
-                            <strong>My Cloud</strong>
-                            <span>Personal storage</span>
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </header>
-
-
-            <!-- HERO -->
-
-            <section class="hero">
-
-                <div class="hero-content">
-
-                    <div class="eyebrow">
-                        <span class="live-dot"></span>
-                        CLOUD STORAGE
-                    </div>
-
-                    <h2>
-                        Your files.
-                        <span>Anywhere.</span>
-                    </h2>
-
-                    <p>
-                        Upload, manage and securely share your
-                        files through your private cloud storage.
-                    </p>
-
-                    <button
-                        class="primary-button"
-                        id="heroUploadButton"
-                    >
-                        <span>＋</span>
-                        Upload a file
-                    </button>
-
-                </div>
-
-                <div class="hero-visual">
-
-                    <div class="cloud-large">
-                        ☁
-                    </div>
-
-                    <div class="floating-card card-one">
-                        <span>✓</span>
-                        Secure
-                    </div>
-
-                    <div class="floating-card card-two">
-                        <span>⚡</span>
-                        Fast
-                    </div>
-
-                    <div class="floating-card card-three">
-                        <span>☁</span>
-                        S3
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- STATISTICS -->
-
-            <section class="stats-grid">
-
-                <div class="stat-card">
-
-                    <div class="stat-icon files-icon">
-                        ▣
-                    </div>
-
-                    <div class="stat-details">
-                        <span>Total files</span>
-                        <strong id="totalFiles">
-                            0
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-icon storage-icon">
-                        ◈
-                    </div>
-
-                    <div class="stat-details">
-                        <span>Storage used</span>
-                        <strong id="totalStorage">
-                            0 Bytes
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-icon image-icon">
-                        ◉
-                    </div>
-
-                    <div class="stat-details">
-                        <span>Images</span>
-                        <strong id="imageCount">
-                            0
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-icon document-icon">
-                        ▤
-                    </div>
-
-                    <div class="stat-details">
-                        <span>Documents</span>
-                        <strong id="documentCount">
-                            0
-                        </strong>
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- UPLOAD -->
-
-            <section
-                class="upload-section"
-                id="upload"
-            >
-
-                <div class="section-heading">
-
-                    <div>
-                        <span class="section-label">
-                            QUICK ACTION
-                        </span>
-
-                        <h3>
-                            Upload files
-                        </h3>
-
-                        <p>
-                            Drag and drop your files here or browse
-                            from your computer.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="upload-zone"
-                    id="uploadZone"
-                >
-
-                    <input
-                        type="file"
-                        id="fileInput"
-                        hidden
-                    >
-
-                    <div class="upload-cloud">
-                        ☁
-                    </div>
-
-                    <h4>
-                        Drop your file here
-                    </h4>
-
-                    <p>
-                        or
-                        <button
-                            type="button"
-                            id="browseButton"
-                            class="browse-button"
-                        >
-                            browse files
-                        </button>
-                    </p>
-
-                    <span class="upload-limit">
-                        Maximum file size: 10 MB
-                    </span>
-
-                </div>
-
-
-                <!-- UPLOAD PROGRESS -->
-
-                <div
-                    class="upload-progress-container"
-                    id="uploadProgressContainer"
-                >
-
-                    <div class="upload-file-info">
-
-                        <div
-                            class="file-type-icon"
-                            id="uploadFileIcon"
-                        >
-                            📄
-                        </div>
-
-                        <div class="upload-file-details">
-
-                            <strong id="uploadFileName">
-                                File
-                            </strong>
-
-                            <span id="uploadProgressText">
-                                Uploading...
-                            </span>
-
-                        </div>
-
-                        <span
-                            id="uploadPercentage"
-                            class="upload-percentage"
-                        >
-                            0%
-                        </span>
-
-                    </div>
-
-                    <div class="progress-track">
-
-                        <div
-                            class="progress-bar"
-                            id="progressBar"
-                        ></div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- FILES -->
-
-            <section
-                class="files-section"
-                id="files"
-            >
-
-                <div class="files-header">
-
-                    <div>
-
-                        <span class="section-label">
-                            YOUR STORAGE
-                        </span>
-
-                        <h3>
-                            Recent files
-                        </h3>
-
-                    </div>
-
-
-                    <div class="file-tools">
-
-                        <div class="search-box">
-
-                            <span>⌕</span>
-
-                            <input
-                                type="text"
-                                id="searchInput"
-                                placeholder="Search files..."
-                            >
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- LOADING -->
-
-                <div
-                    class="loading-state"
-                    id="loadingState"
-                >
-                    <div class="spinner"></div>
-                    <span>Loading your files...</span>
-                </div>
-
-
-                <!-- EMPTY -->
-
-                <div
-                    class="empty-state"
-                    id="emptyState"
-                >
-
-                    <div class="empty-icon">
-                        ☁
-                    </div>
-
-                    <h4>
-                        Your cloud is empty
-                    </h4>
-
-                    <p>
-                        Upload your first file to get started.
-                    </p>
-
-                    <button
-                        class="secondary-button"
-                        id="emptyUploadButton"
-                    >
-                        Upload your first file
-                    </button>
-
-                </div>
-
-
-                <!-- FILE LIST -->
-
-                <div
-                    class="file-list"
-                    id="fileList"
-                ></div>
-
-
-            </section>
-
-
-            <!-- FOOTER -->
-
-            <footer>
-
-                <span>
-                    CloudVault
-                </span>
-
-                <span class="footer-separator">
-                    •
-                </span>
-
-                <span>
-                    Powered by AWS
-                </span>
-
-                <span class="footer-security">
-                    🔒 Private & Secure
-                </span>
-
-            </footer>
-
-        </main>
-
-    </div>
-
-
-    <!-- ==================================================
-         NOTIFICATION
-    =================================================== -->
-
-    <div
-        class="notification"
-        id="notification"
-    >
-
-        <div
-            class="notification-icon"
-            id="notificationIcon"
-        >
-            ✓
+        <div class="logo">
+            ☁ CloudVault
         </div>
 
-        <div>
+        <ul class="nav-links">
+            <li>
+                <a href="#home">Home</a>
+            </li>
 
-            <strong id="notificationTitle">
-                Success
-            </strong>
+            <li>
+                <a href="#upload">Upload</a>
+            </li>
 
-            <p id="notificationMessage">
-                Operation completed.
-            </p>
+            <li>
+                <a href="#files">My Files</a>
+            </li>
+        </ul>
 
-        </div>
+    </nav>
+
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+
+    <section class="hero" id="home">
+
+        <h1>
+            Secure Cloud File Sharing
+        </h1>
+
+        <p>
+            Upload, manage and securely share your files
+            using Amazon S3 and AWS EC2.
+        </p>
 
         <button
-            id="notificationClose"
-            class="notification-close"
+            type="button"
+            id="heroUploadButton"
         >
-            ×
+            Upload a File
         </button>
 
-    </div>
+    </section>
 
 
-    <!-- ==================================================
-         DELETE MODAL
-    =================================================== -->
+    <!-- =====================================================
+         MAIN CONTENT
+         ===================================================== -->
+
+    <main class="container">
+
+
+        <!-- =================================================
+             UPLOAD SECTION
+             ================================================= -->
+
+        <section id="upload">
+
+            <h2 class="section-title">
+                Upload Files
+            </h2>
+
+            <div
+                class="upload-zone"
+                id="uploadArea"
+            >
+
+                <input
+                    type="file"
+                    id="fileInput"
+                >
+
+                <div class="upload-icon">
+                    ☁️
+                </div>
+
+                <h3>
+                    Drop your file here
+                </h3>
+
+                <p>
+                    Drag and drop your file here or browse
+                    from your computer
+                </p>
+
+                <button
+                    type="button"
+                    id="browseBtn"
+                    class="browse-button"
+                >
+                    Browse Files
+                </button>
+
+                <span class="upload-limit">
+                    Maximum file size: 10 MB
+                </span>
+
+            </div>
+
+
+            <!-- UPLOAD PROGRESS -->
+
+            <div
+                class="upload-progress"
+                id="uploadProgress"
+            >
+
+                <div class="progress-header">
+
+                    <strong id="progressFileName">
+                        Uploading...
+                    </strong>
+
+                    <span id="progressText">
+                        0%
+                    </span>
+
+                </div>
+
+                <div class="progress-track">
+
+                    <div
+                        class="progress-bar"
+                        id="progressBar"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             STATISTICS
+             ================================================= -->
+
+        <section>
+
+            <div class="stats">
+
+                <div class="stat-card">
+
+                    <h4>
+                        Total Files
+                    </h4>
+
+                    <strong id="totalFiles">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h4>
+                        Storage Used
+                    </h4>
+
+                    <strong id="storageUsed">
+                        0 B
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h4>
+                        Images
+                    </h4>
+
+                    <strong id="imageCount">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <h4>
+                        Documents
+                    </h4>
+
+                    <strong id="documentCount">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             FILES
+             ================================================= -->
+
+        <section id="files">
+
+            <div class="files-header">
+
+                <h2 class="section-title">
+                    My Files
+                </h2>
+
+                <div class="search-box">
+
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search files..."
+                    >
+
+                </div>
+
+                <button
+                    type="button"
+                    id="refreshBtn"
+                    class="refresh-button"
+                >
+                    ↻ Refresh
+                </button>
+
+            </div>
+
+
+            <div
+                class="files-list"
+                id="filesList"
+            >
+
+                <div class="empty-state">
+                    Loading your files...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         TOAST
+         ===================================================== -->
 
     <div
-        class="modal-overlay"
-        id="deleteModal"
-    >
-
-        <div class="modal">
-
-            <div class="modal-icon">
-                🗑
-            </div>
-
-            <h3>
-                Delete this file?
-            </h3>
-
-            <p>
-                This action permanently removes the file
-                from your cloud storage.
-            </p>
-
-            <div class="modal-actions">
-
-                <button
-                    class="cancel-button"
-                    id="cancelDelete"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    class="delete-confirm-button"
-                    id="confirmDelete"
-                >
-                    Delete file
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
+        id="toast"
+        class="toast"
+    ></div>
 
 
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer>
+
+        <p>
+            CloudVault — AWS EC2 + Amazon S3
+        </p>
+
+    </footer>
+
+
+    <!-- IMPORTANT:
+         script is loaded after HTML elements -->
+         
     <script src="script.js"></script>
 
 </body>
+
 </html>
