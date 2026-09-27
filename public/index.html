@@ -1,68 +1,605 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>Cloud File Sharing App</title>
+    <meta
+        name="description"
+        content="Secure cloud file upload and sharing application powered by Amazon S3 and AWS EC2."
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <title>CloudVault — File Sharing</title>
 
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
-    <div class="container">
+    <!-- ==================================================
+         BACKGROUND
+    =================================================== -->
 
-        <div class="card">
-
-            <h1>Cloud File Sharing</h1>
-
-            <p class="subtitle">
-                Upload and manage files using Amazon S3
-            </p>
-
-            <form id="uploadForm">
-
-                <input
-                    type="file"
-                    id="fileInput"
-                    name="file"
-                    required
-                >
-
-                <button type="submit">
-                    Upload File
-                </button>
-
-            </form>
-
-            <div id="message"></div>
-
-        </div>
+    <div class="background">
+        <div class="gradient-orb orb-one"></div>
+        <div class="gradient-orb orb-two"></div>
+        <div class="gradient-orb orb-three"></div>
+    </div>
 
 
-        <div class="card">
+    <!-- ==================================================
+         APP
+    =================================================== -->
 
-            <div class="files-header">
+    <div class="app-container">
 
-                <h2>Uploaded Files</h2>
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
 
-                <button
-                    id="refreshButton"
-                    class="refresh-btn">
-                    Refresh
-                </button>
+        <aside class="sidebar">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    ☁
+                </div>
+
+                <div>
+                    <h1>CloudVault</h1>
+                    <span>Secure file storage</span>
+                </div>
 
             </div>
 
-            <div id="fileList">
 
-                <p>Loading files...</p>
+            <nav class="navigation">
+
+                <a
+                    href="#"
+                    class="nav-item active"
+                >
+                    <span class="nav-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <a
+                    href="#files"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">▣</span>
+                    <span>My Files</span>
+                </a>
+
+                <a
+                    href="#upload"
+                    class="nav-item"
+                >
+                    <span class="nav-icon">↥</span>
+                    <span>Upload</span>
+                </a>
+
+            </nav>
+
+
+            <div class="sidebar-bottom">
+
+                <div class="security-card">
+
+                    <div class="security-icon">
+                        ✓
+                    </div>
+
+                    <div>
+                        <strong>Secure Storage</strong>
+                        <p>Protected by Amazon S3</p>
+                    </div>
+
+                </div>
+
+                <div class="server-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        Cloud server online
+                    </span>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ==================================================
+             MAIN CONTENT
+        =================================================== -->
+
+        <main class="main-content">
+
+            <!-- TOP BAR -->
+
+            <header class="topbar">
+
+                <div class="mobile-brand">
+                    <div class="brand-icon">☁</div>
+                    <strong>CloudVault</strong>
+                </div>
+
+                <div class="topbar-actions">
+
+                    <button
+                        class="icon-button"
+                        id="refreshButton"
+                        title="Refresh files"
+                    >
+                        ↻
+                    </button>
+
+                    <div class="user-profile">
+
+                        <div class="avatar">
+                            P
+                        </div>
+
+                        <div class="user-info">
+                            <strong>My Cloud</strong>
+                            <span>Personal storage</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- HERO -->
+
+            <section class="hero">
+
+                <div class="hero-content">
+
+                    <div class="eyebrow">
+                        <span class="live-dot"></span>
+                        CLOUD STORAGE
+                    </div>
+
+                    <h2>
+                        Your files.
+                        <span>Anywhere.</span>
+                    </h2>
+
+                    <p>
+                        Upload, manage and securely share your
+                        files through your private cloud storage.
+                    </p>
+
+                    <button
+                        class="primary-button"
+                        id="heroUploadButton"
+                    >
+                        <span>＋</span>
+                        Upload a file
+                    </button>
+
+                </div>
+
+                <div class="hero-visual">
+
+                    <div class="cloud-large">
+                        ☁
+                    </div>
+
+                    <div class="floating-card card-one">
+                        <span>✓</span>
+                        Secure
+                    </div>
+
+                    <div class="floating-card card-two">
+                        <span>⚡</span>
+                        Fast
+                    </div>
+
+                    <div class="floating-card card-three">
+                        <span>☁</span>
+                        S3
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- STATISTICS -->
+
+            <section class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-icon files-icon">
+                        ▣
+                    </div>
+
+                    <div class="stat-details">
+                        <span>Total files</span>
+                        <strong id="totalFiles">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon storage-icon">
+                        ◈
+                    </div>
+
+                    <div class="stat-details">
+                        <span>Storage used</span>
+                        <strong id="totalStorage">
+                            0 Bytes
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon image-icon">
+                        ◉
+                    </div>
+
+                    <div class="stat-details">
+                        <span>Images</span>
+                        <strong id="imageCount">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon document-icon">
+                        ▤
+                    </div>
+
+                    <div class="stat-details">
+                        <span>Documents</span>
+                        <strong id="documentCount">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- UPLOAD -->
+
+            <section
+                class="upload-section"
+                id="upload"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-label">
+                            QUICK ACTION
+                        </span>
+
+                        <h3>
+                            Upload files
+                        </h3>
+
+                        <p>
+                            Drag and drop your files here or browse
+                            from your computer.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="upload-zone"
+                    id="uploadZone"
+                >
+
+                    <input
+                        type="file"
+                        id="fileInput"
+                        hidden
+                    >
+
+                    <div class="upload-cloud">
+                        ☁
+                    </div>
+
+                    <h4>
+                        Drop your file here
+                    </h4>
+
+                    <p>
+                        or
+                        <button
+                            type="button"
+                            id="browseButton"
+                            class="browse-button"
+                        >
+                            browse files
+                        </button>
+                    </p>
+
+                    <span class="upload-limit">
+                        Maximum file size: 10 MB
+                    </span>
+
+                </div>
+
+
+                <!-- UPLOAD PROGRESS -->
+
+                <div
+                    class="upload-progress-container"
+                    id="uploadProgressContainer"
+                >
+
+                    <div class="upload-file-info">
+
+                        <div
+                            class="file-type-icon"
+                            id="uploadFileIcon"
+                        >
+                            📄
+                        </div>
+
+                        <div class="upload-file-details">
+
+                            <strong id="uploadFileName">
+                                File
+                            </strong>
+
+                            <span id="uploadProgressText">
+                                Uploading...
+                            </span>
+
+                        </div>
+
+                        <span
+                            id="uploadPercentage"
+                            class="upload-percentage"
+                        >
+                            0%
+                        </span>
+
+                    </div>
+
+                    <div class="progress-track">
+
+                        <div
+                            class="progress-bar"
+                            id="progressBar"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- FILES -->
+
+            <section
+                class="files-section"
+                id="files"
+            >
+
+                <div class="files-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            YOUR STORAGE
+                        </span>
+
+                        <h3>
+                            Recent files
+                        </h3>
+
+                    </div>
+
+
+                    <div class="file-tools">
+
+                        <div class="search-box">
+
+                            <span>⌕</span>
+
+                            <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Search files..."
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOADING -->
+
+                <div
+                    class="loading-state"
+                    id="loadingState"
+                >
+                    <div class="spinner"></div>
+                    <span>Loading your files...</span>
+                </div>
+
+
+                <!-- EMPTY -->
+
+                <div
+                    class="empty-state"
+                    id="emptyState"
+                >
+
+                    <div class="empty-icon">
+                        ☁
+                    </div>
+
+                    <h4>
+                        Your cloud is empty
+                    </h4>
+
+                    <p>
+                        Upload your first file to get started.
+                    </p>
+
+                    <button
+                        class="secondary-button"
+                        id="emptyUploadButton"
+                    >
+                        Upload your first file
+                    </button>
+
+                </div>
+
+
+                <!-- FILE LIST -->
+
+                <div
+                    class="file-list"
+                    id="fileList"
+                ></div>
+
+
+            </section>
+
+
+            <!-- FOOTER -->
+
+            <footer>
+
+                <span>
+                    CloudVault
+                </span>
+
+                <span class="footer-separator">
+                    •
+                </span>
+
+                <span>
+                    Powered by AWS
+                </span>
+
+                <span class="footer-security">
+                    🔒 Private & Secure
+                </span>
+
+            </footer>
+
+        </main>
+
+    </div>
+
+
+    <!-- ==================================================
+         NOTIFICATION
+    =================================================== -->
+
+    <div
+        class="notification"
+        id="notification"
+    >
+
+        <div
+            class="notification-icon"
+            id="notificationIcon"
+        >
+            ✓
+        </div>
+
+        <div>
+
+            <strong id="notificationTitle">
+                Success
+            </strong>
+
+            <p id="notificationMessage">
+                Operation completed.
+            </p>
+
+        </div>
+
+        <button
+            id="notificationClose"
+            class="notification-close"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <!-- ==================================================
+         DELETE MODAL
+    =================================================== -->
+
+    <div
+        class="modal-overlay"
+        id="deleteModal"
+    >
+
+        <div class="modal">
+
+            <div class="modal-icon">
+                🗑
+            </div>
+
+            <h3>
+                Delete this file?
+            </h3>
+
+            <p>
+                This action permanently removes the file
+                from your cloud storage.
+            </p>
+
+            <div class="modal-actions">
+
+                <button
+                    class="cancel-button"
+                    id="cancelDelete"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    class="delete-confirm-button"
+                    id="confirmDelete"
+                >
+                    Delete file
+                </button>
 
             </div>
 
@@ -70,8 +607,8 @@
 
     </div>
 
+
     <script src="script.js"></script>
 
 </body>
-
 </html>
